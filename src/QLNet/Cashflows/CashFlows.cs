@@ -672,20 +672,17 @@ namespace QLNet
          if (settlementDate == null)
             settlementDate = Settings.evaluationDate();
 
-         CashFlow cf = nextCashFlow(leg, includeSettlementDateFlows, settlementDate);
-         if (cf == null)
-            return 0;
-
-         Date paymentDate = cf.date();
-         double result = 0.0;
-
-         foreach (CashFlow x in leg.Where(x => x.date() == paymentDate))
+         foreach (var cf in leg)
          {
-            Coupon cp = x as Coupon;
-            if (cp != null)
-               result += cp.accruedAmount(settlementDate);
+            if (cf is Coupon c &&
+                settlementDate > c.accrualStartDate() &&
+                settlementDate <= c.date())
+            {
+               return c.accruedAmount(settlementDate);
+            }
          }
-         return result;
+
+         return 0.0;
       }
       #endregion
 
